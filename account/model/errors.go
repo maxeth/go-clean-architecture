@@ -9,7 +9,7 @@ import (
 // "Set" of error Types
 const (
 	Authorization        = "AUTHORIZATION"          // Authentication Failures -
-	BadRequest           = "BADR_EQUEST"            // Validation errors / BadInput
+	BadRequest           = "BAD_REQUEST"            // Validation errors / BadInput
 	Conflict             = "CONFLICT"               // Already exists (eg, create account with existent email) - 409
 	Internal             = "INTERNAL"               // Server (500) and fallback errors
 	NotFound             = "NOTFOUND"               // For not finding resource
