@@ -3,7 +3,6 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -19,10 +18,10 @@ import (
 )
 
 func TestSignup(t *testing.T) {
-	//user := randomUser(t)
 	pw := library.RandomString(15)
 	email := "somemail@gmail.com"
 
+	// random value for a access and refresh token
 	randomAT := "at"
 	randomRT := "rt"
 
@@ -59,6 +58,65 @@ func TestSignup(t *testing.T) {
 					AccessToken:  randomAT,
 					RefreshToken: randomRT,
 				})
+			},
+		},
+		{
+			name: "TooShortPassword",
+			body: gin.H{
+				"email":    email,
+				"password": "123", // too short
+			},
+			buildStubs: func(us *mocks.MockUserService, ts *mocks.MockTokenService) {
+				us.EXPECT().Signup(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
+				ts.EXPECT().NewPairFromUser(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
+			},
+			checkResponse: func(resRec *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, resRec.Code)
+				expectedIRR := &InvalidRequestResponse{
+					Error: model.Error{
+						Type: "BAD_REQUEST",
+					},
+					InvalidArgs: []InvalidArgument{{Field: "Password", Tag: "gte"}},
+				}
+				requireErrorResponseMatch(t, resRec.Body, *expectedIRR)
+			},
+		},
+		{
+			name: "MissingPassword",
+			body: gin.H{
+				"email": email,
+			},
+			buildStubs: func(us *mocks.MockUserService, ts *mocks.MockTokenService) {
+				us.EXPECT().Signup(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
+				ts.EXPECT().NewPairFromUser(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
+			},
+			checkResponse: func(resRec *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, resRec.Code)
+				expectedIRR := &InvalidRequestResponse{
+					Error: model.Error{
+						Type: "BAD_REQUEST",
+					},
+					InvalidArgs: []InvalidArgument{{Field: "Password", Tag: "required"}},
+				}
+				requireErrorResponseMatch(t, resRec.Body, *expectedIRR)
+			},
+		},
+		{
+			name: "EmptyRequestBody",
+			body: gin.H{},
+			buildStubs: func(us *mocks.MockUserService, ts *mocks.MockTokenService) {
+				us.EXPECT().Signup(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
+				ts.EXPECT().NewPairFromUser(gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
+			},
+			checkResponse: func(resRec *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, resRec.Code)
+				expectedIRR := &InvalidRequestResponse{
+					Error: model.Error{
+						Type: "BAD_REQUEST",
+					},
+					InvalidArgs: []InvalidArgument{{Field: "Password", Tag: "required"}, {Field: "Email", Tag: "required"}},
+				}
+				requireErrorResponseMatch(t, resRec.Body, *expectedIRR)
 			},
 		},
 	}
@@ -104,11 +162,27 @@ func TestSignup(t *testing.T) {
 	}
 }
 
-func requireResponseBodyJWTMatch(t *testing.T, body *bytes.Buffer, tp model.TokenPair) {
+func requireErrorResponseMatch(t *testing.T, body *bytes.Buffer, irr InvalidRequestResponse) {
 	data, err := ioutil.ReadAll(body)
 	require.NoError(t, err)
 
-	fmt.Println("data is", string(data))
+	var gotIRR InvalidRequestResponse
+	err = json.Unmarshal(data, &gotIRR)
+	require.NoError(t, err)
+
+	require.Equal(t, len(gotIRR.InvalidArgs), len(irr.InvalidArgs))
+
+	for k, v := range irr.InvalidArgs {
+		require.Equal(t, v.Field, irr.InvalidArgs[k].Field)
+		require.Equal(t, v.Tag, irr.InvalidArgs[k].Tag)
+	}
+
+	require.Equal(t, gotIRR.Error.Type, irr.Error.Type)
+}
+
+func requireResponseBodyJWTMatch(t *testing.T, body *bytes.Buffer, tp model.TokenPair) {
+	data, err := ioutil.ReadAll(body)
+	require.NoError(t, err)
 
 	type resStruct struct {
 		Tokens model.TokenPair `json:"tokens"`
@@ -117,7 +191,6 @@ func requireResponseBodyJWTMatch(t *testing.T, body *bytes.Buffer, tp model.Toke
 	//var test model.TokenPair
 	err = json.Unmarshal(data, &gotRes)
 
-	fmt.Println("got unmarshalled: ", gotRes)
 	require.NoError(t, err)
 
 	//err = json.Unmarshal(data, &test)
