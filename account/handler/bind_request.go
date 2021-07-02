@@ -10,11 +10,17 @@ import (
 )
 
 // used to help extract validation errors of http request body
-type invalidArgument struct {
+type InvalidArgument struct {
 	Field string `json:"field"`
 	Value string `json:"value"`
 	Tag   string `json:"tag"`
 	Param string `json:"param"`
+}
+
+// type of the http reponse when sending an invalid request
+type InvalidRequestResponse struct {
+	Error       model.Error       `json:"error"`
+	InvalidArgs []InvalidArgument `json:"invalidArgs"`
 }
 
 // bindData tries to bind the expected request struct to the actual http request body inside gin.Context
@@ -30,6 +36,7 @@ func bindData(c *gin.Context, req interface{}) bool {
 		err := model.NewUnsupportedMediaType(msg)
 
 		errorResponse(c, *err)
+		return false
 	}
 
 	// Bind incoming json to struct and check for validation errors
@@ -42,10 +49,10 @@ func bindData(c *gin.Context, req interface{}) bool {
 
 	if errs, ok := err.(validator.ValidationErrors); ok {
 		// validation error from the validation library that gin uses
-		var invalidArgs []invalidArgument
+		var invalidArgs []InvalidArgument
 
 		for _, err := range errs {
-			invalidArgs = append(invalidArgs, invalidArgument{
+			invalidArgs = append(invalidArgs, InvalidArgument{
 				err.Field(),
 				err.Value().(string),
 				err.Tag(),
