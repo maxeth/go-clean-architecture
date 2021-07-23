@@ -21,24 +21,26 @@ restart:
 mock: 
 	mockgen -package mocks -destination ./model/mocks/user_service.go github.com/maxeth/go-account-api/model UserRepository,UserService,TokenService,TokenRepository
 
+gqlgen:
+	go run github.com/99designs/gqlgen generate
 
 create-keypair:
 	@echo "Creating an rsa 256 key pair"
 	openssl genpkey -algorithm RSA -out rsa_private_$(ENV).pem -pkeyopt rsa_keygen_bits:2048
 	openssl rsa -in rsa_private_$(ENV).pem -pubout -out rsa_public_$(ENV).pem 	
 
-createdb:
+create-db:
 	docker exec -u postgres $(PGCONTAINERNAME) createdb --username=postgres --owner=postgres accounts_db
 
-dropdb:
+drop-db:
 	docker restart $(PGCONTAINERNAME) && docker exec -u postgres $(PGCONTAINERNAME) dropdb accounts_db
 
-migratecreate:
+migrate-create:
 	migrate create -ext sql -dir ./migration -seq -digits 5 postgres
 
-migrateup:
+migrate-up:
 	migrate -path ./migration -database "postgresql://postgres:password@localhost:5432/accounts_db?sslmode=disable" -verbose up $(N)
  
-migratedown:
+migrate-down:
 	migrate -path ./migration -database "postgresql://postgres:password@localhost:5432/accounts_db?sslmode=disable" -verbose down $(N)
 
