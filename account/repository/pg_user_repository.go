@@ -50,3 +50,14 @@ func (r *pgUserRepository) FindByID(ctx context.Context, uid uuid.UUID) (*model.
 
 	return user, nil
 }
+
+func (r *pgUserRepository) FindByEmail(ctx context.Context, email string) (*model.User, error) {
+	q := "SELECT * FROM users u WHERE email = $1 LIMIT 1"
+
+	user := &model.User{}
+	if err := r.DB.GetContext(ctx, user, q, email); err != nil {
+		return &model.User{}, model.NewInternal()
+	}
+
+	return user, nil
+}
