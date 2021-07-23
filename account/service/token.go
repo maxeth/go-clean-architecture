@@ -55,9 +55,8 @@ func generateRefreshToken(uid uuid.UUID, key string, exp int64) (*RefreshToken, 
 	tokenExp := currentTime.Add(time.Duration(exp * int64(time.Second))) // 30 days
 
 	tokenID, err := uuid.NewRandom()
-
 	if err != nil {
-		log.Println("Failed to generate refresh token ID")
+		log.Println("Failed to generate refresh token UUID")
 		return nil, err
 	}
 

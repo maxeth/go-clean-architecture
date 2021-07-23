@@ -34,15 +34,34 @@ func (us *userService) Signup(ctx context.Context, email, password string) (*mod
 		return empty, model.NewInternal()
 	}
 
+	// create a user struct with the passed email and hashed password to be stored in the db
 	u := &model.User{
 		Email:    email,
 		Password: hashedPw,
 	}
-
 	user, err := us.UserRepository.Create(ctx, u)
 	if err != nil {
 		return empty, err
 	}
 
 	return user, err
+}
+
+func (us *userService) Signin(ctx context.Context, email, password string) (*model.User, error) {
+	empty := &model.User{}
+
+	user, err := us.UserRepository.FindByEmail(ctx, email)
+	if err != nil {
+		return empty, model.NewInternal()
+	}
+
+	if user == nil {
+		return empty, model.NewNotFound("user", email)
+	}
+
+	if err := ComparePassword(user.Password, password); err != nil {
+		return empty, model.NewAuthorization("password and email do not match")
+	}
+
+	return user, nil
 }
