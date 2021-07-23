@@ -52,6 +52,21 @@ func (mr *MockUserRepositoryMockRecorder) Create(arg0, arg1 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserRepository)(nil).Create), arg0, arg1)
 }
 
+// FindByEmail mocks base method.
+func (m *MockUserRepository) FindByEmail(arg0 context.Context, arg1 string) (*model.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindByEmail", arg0, arg1)
+	ret0, _ := ret[0].(*model.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByEmail indicates an expected call of FindByEmail.
+func (mr *MockUserRepositoryMockRecorder) FindByEmail(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByEmail", reflect.TypeOf((*MockUserRepository)(nil).FindByEmail), arg0, arg1)
+}
+
 // FindByID mocks base method.
 func (m *MockUserRepository) FindByID(arg0 context.Context, arg1 uuid.UUID) (*model.User, error) {
 	m.ctrl.T.Helper()
@@ -103,6 +118,21 @@ func (m *MockUserService) Get(arg0 context.Context, arg1 uuid.UUID) (*model.User
 func (mr *MockUserServiceMockRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUserService)(nil).Get), arg0, arg1)
+}
+
+// Signin mocks base method.
+func (m *MockUserService) Signin(arg0 context.Context, arg1, arg2 string) (*model.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Signin", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Signin indicates an expected call of Signin.
+func (mr *MockUserServiceMockRecorder) Signin(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Signin", reflect.TypeOf((*MockUserService)(nil).Signin), arg0, arg1, arg2)
 }
 
 // Signup mocks base method.

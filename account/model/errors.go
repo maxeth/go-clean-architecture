@@ -24,6 +24,7 @@ const (
 type Error struct {
 	Type    string `json:"type"`
 	Message string `json:"message"`
+	Field   string `json:"field"`
 }
 
 // Error satisfies standard error interface
@@ -99,6 +100,7 @@ func NewConflict(name string, value string) *Error {
 	return &Error{
 		Type:    Conflict,
 		Message: fmt.Sprintf("resource: %v with value: %v already exists", name, value),
+		Field:   name,
 	}
 }
 
