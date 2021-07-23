@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -39,7 +40,7 @@ type signupReq struct {
 
 func (h *Handler) Signup(c *gin.Context) {
 	//b, _ := ioutil.ReadAll(c.Request.Body)
-//	fmt.Println("GOT IN HANDLER BODY: ", string(b))
+	//	fmt.Println("GOT IN HANDLER BODY: ", string(b))
 
 	var req signupReq
 	if ok := bindData(c, &req); !ok {
@@ -66,10 +67,35 @@ func (h *Handler) Signup(c *gin.Context) {
 	})
 }
 
-// Signin handler
+type signinReq struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,gte=6,lte=30"` // 6 <= password <= 30
+}
+
 func (h *Handler) Signin(c *gin.Context) {
+	var req signinReq
+	if ok := bindData(c, &req); !ok {
+		return
+	}
+
+	// extract the "actual" http context as this is the context we want to pass down the callchain in every handler, not the gin context
+	ctx := c.Request.Context()
+
+	user, err := h.UserService.Signin(ctx, req.Email, req.Password)
+	if err != nil {
+		errM := model.NewAuthorization("Invalid password or email.")
+		errorResponse(c, *errM)
+	}
+
+	tokens, err := h.TokenService.NewPairFromUser(ctx, user, "")
+	if err != nil {
+		log.Printf("Failed to create tokens when signing in user: %v\n", err.Error())
+		errM := model.NewInternal()
+		errorResponse(c, *errM)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"hello": "it's signin",
+		"tokens": tokens,
 	})
 }
 
