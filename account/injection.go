@@ -83,5 +83,12 @@ func inject(d *dataSources) (*gin.Engine, error) {
 		TimeOutDuration: time.Duration(7 * time.Second),
 	})
 
+	handler.NewGraphQLHandler(&handler.GraphQLConfig{
+		R:               router,
+		UserService:     userService,
+		TokenService:    tokenService,
+		TimeOutDuration: time.Duration(7 * time.Second),
+	})
+
 	return router, nil
 }

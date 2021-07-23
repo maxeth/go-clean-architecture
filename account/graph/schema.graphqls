@@ -1,0 +1,60 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+directive @length(
+  keyName: String! # name of the key of the arg map that should be checked for length
+  minLength: Int!
+  maxLength: Int!
+) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+# Validates email regex and if allowDuplicate is false, checks whether user with that email already exists in DB
+directive @validateEmail(
+  allowDuplicate: Boolean!
+) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+
+type ResponseError {
+  field: String
+  error: String!
+}
+interface Response {
+  errors: [ResponseError!]
+}
+
+type TokenPair {
+  accessToken: String!
+  refreshToken: String!
+}
+
+type UserResponse implements Response {
+  errors: [ResponseError!]
+  user: User
+}
+
+type User {
+  uid: ID!
+  email: String!
+  name: String
+  imageURL: String
+  website: String
+}
+
+type Query {
+  me: User
+  user(id: Int!): User
+}
+
+input SignUpDto {
+  password: String! @length(keyName: "password", minLength: 6, maxLength: 50)
+  email: String! @validateEmail(allowDuplicate: false)
+}
+
+type SignUpResponse implements Response {
+  errors: [ResponseError!]
+  tokenPair: TokenPair
+}
+
+type Mutation {
+  signUp(input: SignUpDto!): SignUpResponse
+  signIn(input: SignUpDto!): SignUpResponse
+}
