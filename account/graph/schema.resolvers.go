@@ -7,36 +7,33 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/99designs/gqlgen/graphql"
 	"github.com/maxeth/go-account-api/graph/generated"
 	gql_model "github.com/maxeth/go-account-api/graph/model"
 	"github.com/maxeth/go-account-api/model"
-	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 func (r *mutationResolver) SignUp(ctx context.Context, input gql_model.SignUpDto) (*gql_model.SignUpResponse, error) {
+	fmt.Println("GRAPHQL RESOLVER SIGNUP")
 	user, err := r.UserService.Signup(ctx, input.Email, input.Password)
 	if err != nil {
-		e := &gqlerror.Error{
-			Path:    graphql.GetPath(ctx),
-			Message: err.Error(),
-		}
+		// e := &gqlerror.Error{
+		// 	Path:    graphql.GetPath(ctx),
+		// 	Message: err.Error(),
+		// }
 		appError, ok := err.(*model.Error)
-		if ok && len(appError.Field) > 0 {
-			e.Extensions = map[string]interface{}{
-				"field": appError.Field,
-				"type":  appError.Type,
-			}
+		if ok {
+			// e.Extensions = map[string]interface{}{
+			// 	"field": appError.Field,
+			// 	"type":  appError.Type,
+			return nil, appError
+
 		}
-		return nil, e
+		return nil, err
 	}
 
 	tokenPair, err := r.TokenService.NewPairFromUser(ctx, user, "")
 	if err != nil {
-		return nil, &gqlerror.Error{
-			Path:    graphql.GetPath(ctx),
-			Message: "internal error",
-		}
+		return nil, err
 	}
 
 	return &gql_model.SignUpResponse{
@@ -46,21 +43,21 @@ func (r *mutationResolver) SignUp(ctx context.Context, input gql_model.SignUpDto
 }
 
 func (r *mutationResolver) SignIn(ctx context.Context, input gql_model.SignUpDto) (*gql_model.SignUpResponse, error) {
+	fmt.Println("GRAPHQL RESOLVER SIGNIN")
+
 	user, err := r.UserService.Signin(ctx, input.Email, input.Password)
 	if err != nil {
-		e := &gqlerror.Error{
-			Path:    graphql.GetPath(ctx),
-			Message: err.Error(),
-		}
+		// e := &gqlerror.Error{
+		// 	Path:    graphql.GetPath(ctx),
+		// 	Message: err.Error(),
+		// }
+		e := model.NewInternal()
 		return nil, e
 	}
 
 	tokenPair, err := r.TokenService.NewPairFromUser(ctx, user, "")
 	if err != nil {
-		return nil, &gqlerror.Error{
-			Path:    graphql.GetPath(ctx),
-			Message: "internal error",
-		}
+		return nil, err
 	}
 	return &gql_model.SignUpResponse{
 		Errors:    nil,

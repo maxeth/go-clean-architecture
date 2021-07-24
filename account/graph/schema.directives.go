@@ -7,7 +7,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/maxeth/go-account-api/graph/generated"
-	"github.com/vektah/gqlparser/v2/gqlerror"
+	"github.com/maxeth/go-account-api/model"
 )
 
 func stringFromMap(key string, inMap interface{}) (string, error) {
@@ -31,10 +31,7 @@ var SchemaDirectives = generated.DirectiveRoot{
 		}
 
 		if _, err := mail.ParseAddress(email); err != nil {
-			return nil, &gqlerror.Error{
-				Path:    graphql.GetPath(ctx),
-				Message: "invalid email format",
-			}
+			return nil, model.NewValidation("email", "Input is not an Email.")
 		}
 
 		return next(ctx)
@@ -45,10 +42,7 @@ var SchemaDirectives = generated.DirectiveRoot{
 			return nil, err
 		}
 		if len(arg) < minLength || len(arg) > maxLength {
-			return nil, &gqlerror.Error{
-				Path:    graphql.GetPath(ctx),
-				Message: fmt.Sprintf("%v is too short", keyName),
-			}
+			return nil, model.NewValidation(keyName, fmt.Sprintf("%v should have a length of %v-%v.", keyName, minLength, maxLength))
 		}
 		return next(ctx)
 	},
