@@ -76,19 +76,22 @@ func inject(d *dataSources) (*gin.Engine, error) {
 	// initialize gin.Engine
 	router := gin.Default()
 
-	handler.NewHandler(&handler.Config{
-		R:               router,
-		UserService:     userService,
-		TokenService:    tokenService,
-		TimeOutDuration: time.Duration(7 * time.Second),
-	})
+	tc := &service.OAuthServiceConfig{
+		Secret:       os.Getenv("TWITCH_SECRET"),
+		ClientID:     os.Getenv("TWITCH_CLIENT"),
+		Callback_URI: os.Getenv("TWITCH_CALLBACK"),
+	}
+	oAuthService := service.NewOAuthService(tc)
 
-	handler.NewGraphQLHandler(&handler.GraphQLConfig{
+	c := &handler.Config{
 		R:               router,
 		UserService:     userService,
+		OAuthService:    oAuthService,
 		TokenService:    tokenService,
 		TimeOutDuration: time.Duration(7 * time.Second),
-	})
+	}
+	handler.NewHandler(c)
+	//handler.NewGraphQLHandler(c)
 
 	return router, nil
 }
