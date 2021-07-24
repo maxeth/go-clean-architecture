@@ -95,6 +95,14 @@ func NewBadRequest(reason string) *Error {
 	}
 }
 
+func NewValidation(field, reason string) *Error {
+	return &Error{
+		Type:    BadRequest,
+		Message: fmt.Sprintf("Bad request. Reason: %v", reason),
+		Field:   field,
+	}
+}
+
 // NewConflict to create an error for 409
 func NewConflict(name string, value string) *Error {
 	return &Error{
@@ -117,6 +125,7 @@ func NewNotFound(name string, value string) *Error {
 	return &Error{
 		Type:    NotFound,
 		Message: fmt.Sprintf("resource: %v with value: %v not found", name, value),
+		Field:   name,
 	}
 }
 
