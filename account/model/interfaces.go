@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	oauth "github.com/maxeth/go-account-api/model/oauth"
 )
 
 // UserService defines methods the handler layer expects
@@ -21,7 +20,8 @@ type TokenService interface {
 }
 
 type OAuthService interface {
-	SignupTwitch(ctx context.Context, tokenRes oauth.TwitchOIDCResponse) error
+	GetTwitchRedirectURL() string
+	GetTwitchCredentials(code string) (TwitchOIDCResponse, error)
 }
 
 // UserRepository defines methods the service layer expects
