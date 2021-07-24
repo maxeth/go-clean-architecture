@@ -29,7 +29,6 @@ func bindData(c *gin.Context, req interface{}) bool {
 	//b, _ := ioutil.ReadAll(c.Request.Body)
 	//fmt.Println("inside binder: ", string(b))
 
-	fmt.Println("request interface: ", req)
 	// return error of request header is of any other type than json
 	if c.ContentType() != "application/json" {
 		msg := fmt.Sprintf("Content-Type for %s must be application/json", c.FullPath())
