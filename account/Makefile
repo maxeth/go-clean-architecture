@@ -1,6 +1,7 @@
 PWD = $(shell pwd)
 ACCTPATH = $(PWD)\account
 PGCONTAINERNAME=backend-memrizr-course_postgres-db_1 # replace backend-memrizr-course with the name of your directory, or simply copy this container name from `docker-compose ps`
+API_SERVICE_NAME=account
 
 init:
 	docker-compose up -d postgres-db && \
@@ -15,8 +16,14 @@ docker-compose-rebuild:
 compose:
 	docker-compose up
 
-restart:
+restart-compose:
 	docker-compose down && docker-compose up
+
+restart-service: #&& docker-compose build $(NAME) 
+	docker-compose stop -t 1 $(NAME) && docker-compose up --no-start $(NAME) && docker-compose start $(NAME)
+
+restart-api: #  && docker-compose build $(API_SERVICE_NAME) 
+	docker-compose stop -t 1 $(API_SERVICE_NAME) && docker-compose up --no-start $(API_SERVICE_NAME) && docker-compose start $(API_SERVICE_NAME)
 
 mock: 
 	mockgen -package mocks -destination ./model/mocks/user_service.go github.com/maxeth/go-account-api/model UserRepository,UserService,TokenService,TokenRepository
